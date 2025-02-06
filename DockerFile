@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y nano && rm -rf /var/lib/apt/lists/* \
     && npm install
 
 # Exposing the port
-EXPOSE 3000
+EXPOSE 6300
 
 # Starting our application
 CMD [ "node", "index.js" ]
