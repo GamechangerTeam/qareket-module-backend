@@ -5,7 +5,7 @@ const cors = require('cors');
 const axios = require('axios');
 
 const app = express();
-const PORT = 3000;
+const PORT = 6300;
 const FILE_PATH = 'products.json'; // Путь к JSON-файлу
 
 app.use(cors());
