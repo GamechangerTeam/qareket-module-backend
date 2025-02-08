@@ -14,58 +14,17 @@ app.use(express.json());
 // Функция для получения товаров из Bitrix24
 async function fetchProducts() {
     console.log('Запрос к Bitrix24 API...');
+    const productSelects = ["ACTIVE", "CATALOG_ID", "CODE", "CREATED_BY", "CURRENCY_ID", "DATE_CREATE", "DESCRIPTION", "DESCRIPTION_TYPE", "DETAIL_PICTURE", "ID", "MEASURE", "MODIFIED_BY", "NAME", "PREVIEW_PICTURE", "PRICE", "PROPERTY_44", "PROPERTY_50", "PROPERTY_52", "PROPERTY_54", "PROPERTY_56", "PROPERTY_58", "PROPERTY_60", "PROPERTY_62", "PROPERTY_64", "PROPERTY_66", "PROPERTY_68", "PROPERTY_70", "PROPERTY_72", "PROPERTY_74", "PROPERTY_76", "PROPERTY_78", "PROPERTY_80", "PROPERTY_82", "PROPERTY_84", "PROPERTY_86", "PROPERTY_88", "SECTION_ID", "SORT", "TIMESTAMP_X", "VAT_ID", "VAT_INCLUDED", "XML_ID"];
     const allProducts = [];
     let start = 0;
     let total = 0;
   
     try {
       do {
-        const response = await axios.get(`https://b24-mrp6op.bitrix24.kz/rest/${process.env.BITRIX_API_KEY}/crm.product.list`, {
+        const response = await axios.get(`https://b24-8cgsys.bitrix24.kz/rest${process.env.BITRIX_API_KEY}crm.product.list`, {
           params: {
-            filter: { iblockId: 17 },
-            select: [
-              "ACTIVE",
-              "CATALOG_ID",
-              "CODE",
-              "CREATED_BY",
-              "CURRENCY_ID",
-              "DESCRIPTION",
-              "DESCRIPTION_TYPE",
-              "DETAIL_PICTURE",
-              "ID",
-              "MEASURE",
-              "MODIFIED_BY",
-              "NAME",
-              "PREVIEW_PICTURE",
-              "PRICE",
-              "PROPERTY_45",
-              "PROPERTY_107",
-              "PROPERTY_109",
-              "PROPERTY_111",
-              "PROPERTY_113",
-              "PROPERTY_115",
-              "PROPERTY_117",
-              "PROPERTY_119",
-              "PROPERTY_123",
-              "PROPERTY_125",
-              "PROPERTY_127",
-              "PROPERTY_129",
-              "PROPERTY_131",
-              "PROPERTY_133",
-              "PROPERTY_135",
-              "PROPERTY_137",
-              "PROPERTY_139",
-              "PROPERTY_141",
-              "PROPERTY_143",
-              "PROPERTY_145",
-              "PROPERTY_147",
-              "SECTION_ID",
-              "SORT",
-              "TIMESTAMP_X",
-              "VAT_ID",
-              "VAT_INCLUDED",
-              "XML_ID",
-            ],
+            filter: { iblockId: 16 },
+            select: productSelects,
             start: start,
           },
         });
@@ -100,7 +59,7 @@ async function fetchProducts() {
       return [];
     }
   }
-
+// '/qareket/api/update-products'
 // НОВЫЙ маршрут: обновить JSON-файл вручную
 app.post('/api/update-products', async (req, res) => {
   console.log('⏳ Обновляем products.json...');
@@ -113,6 +72,7 @@ app.post('/api/update-products', async (req, res) => {
 });
 
 // НОВЫЙ маршрут: получить данные из JSON-файла
+// '/qareket/api/products'
 app.post('/api/products', (req, res) => {
   console.log('📂 Запрос к локальному JSON...');
   if (!fs.existsSync(FILE_PATH)) {
@@ -122,6 +82,8 @@ app.post('/api/products', (req, res) => {
   try {
     const data = fs.readFileSync(FILE_PATH, 'utf-8');
     const products = JSON.parse(data);
+    // const products = data;
+
 
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
