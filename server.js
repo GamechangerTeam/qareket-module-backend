@@ -61,7 +61,7 @@ async function fetchProducts() {
   }
 // '/qareket/api/update-products'
 // НОВЫЙ маршрут: обновить JSON-файл вручную
-app.post('/api/update-products', async (req, res) => {
+app.post('/qareket/api/update-products', async (req, res) => {
   console.log('⏳ Обновляем products.json...');
   const products = await fetchProducts();
   if (products.length > 0) {
@@ -73,7 +73,7 @@ app.post('/api/update-products', async (req, res) => {
 
 // НОВЫЙ маршрут: получить данные из JSON-файла
 // '/qareket/api/products'
-app.post('/api/products', (req, res) => {
+app.post('/qareket/api/products', (req, res) => {
   console.log('📂 Запрос к локальному JSON...');
   if (!fs.existsSync(FILE_PATH)) {
     return res.status(404).json({ error: 'Файл products.json не найден' });
