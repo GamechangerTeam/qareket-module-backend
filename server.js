@@ -12,7 +12,77 @@ app.use(cors());
 app.use(express.json());
 
 // Функция для получения товаров из Bitrix24
-async function fetchProducts() {
+// async function fetchProducts() {
+//     console.log('Запрос к Bitrix24 API...');
+
+    // const storeResponse = await axios.get(`https://b24-8cgsys.bitrix24.kz/rest${process.env.BITRIX_API_KEY}catalog.storeproduct.list`, {
+    //   params: {
+        
+    //     select: [
+    //       'id',
+    //       'productId', // ID продукта или торгового предложения
+    //       'amount', // кол-во продукта по складу
+    //       'storeId' // ID склада
+    //     ],
+    //   }
+    // }); 
+
+    // const productSelects = ["ACTIVE", "CATALOG_ID", "CODE", "CREATED_BY", "CURRENCY_ID", "DATE_CREATE", "DESCRIPTION", "DESCRIPTION_TYPE", "DETAIL_PICTURE", "ID", "MEASURE", "MODIFIED_BY", "NAME", "PREVIEW_PICTURE", "PRICE", "PROPERTY_44", "PROPERTY_50", "PROPERTY_52", "PROPERTY_54", "PROPERTY_56", "PROPERTY_58", "PROPERTY_60", "PROPERTY_62", "PROPERTY_64", "PROPERTY_66", "PROPERTY_68", "PROPERTY_70", "PROPERTY_72", "PROPERTY_74", "PROPERTY_76", "PROPERTY_78", "PROPERTY_80", "PROPERTY_82", "PROPERTY_84", "PROPERTY_86", "PROPERTY_88", "SECTION_ID", "SORT", "TIMESTAMP_X", "VAT_ID", "VAT_INCLUDED", "XML_ID"];
+    // const allProducts = [];
+    // let start = 0;
+    // let total = 0;
+  
+    // try {
+    //   do {
+    //     const response = await axios.get(`https://b24-8cgsys.bitrix24.kz/rest${process.env.BITRIX_API_KEY}crm.product.list`, {
+    //       params: {
+    //         filter: { iblockId: 16 },
+    //         select: productSelects,
+    //         start: start,
+    //       },
+    //     });
+
+    //     const storeQuantity = await axios.get(`https://b24-8cgsys.bitrix24.kz/rest${process.env.BITRIX_API_KEY}catalog.storeproduct.list`, {
+    //       params: {
+    //         filter: { productId: response.data.result[i].ID},
+    //         start: start,
+    //       },
+    //     });
+  
+    //     total = response.data.total;
+    //     start += 50;
+  
+    //     // console.log('Ответ от Bitrix24:', response.data);
+  
+    //     if (!response.data.result || response.data.result.length === 0) {
+    //       console.warn('Bitrix24 вернул пустой список товаров!');
+    //       break;
+    //     }
+        
+    //     console.log(`Количество остатка ${storeQuantity.data}`);
+
+    //     allProducts.push(...mainData);
+  
+    //     if (response.data.total < 50) {
+    //       break;
+    //     }
+    //   } while (start < total);
+      
+    //   console.log(allProducts.length);
+
+    //   fs.writeFileSync(FILE_PATH, '', 'utf-8');
+
+    //   // Записываем товары в файл
+    //   fs.writeFileSync(FILE_PATH, JSON.stringify(allProducts, null, 2), 'utf-8');
+    //   console.log(`✅ Товары успешно записаны в ${FILE_PATH}`);
+    //   return allProducts;
+    // } catch (error) {
+    //   console.error('Ошибка при запросе к Bitrix24:', error);
+    //   return [];
+    // }
+  // }
+
+  async function fetchProducts() {
     console.log('Запрос к Bitrix24 API...');
     const productSelects = ["ACTIVE", "CATALOG_ID", "CODE", "CREATED_BY", "CURRENCY_ID", "DATE_CREATE", "DESCRIPTION", "DESCRIPTION_TYPE", "DETAIL_PICTURE", "ID", "MEASURE", "MODIFIED_BY", "NAME", "PREVIEW_PICTURE", "PRICE", "PROPERTY_44", "PROPERTY_50", "PROPERTY_52", "PROPERTY_54", "PROPERTY_56", "PROPERTY_58", "PROPERTY_60", "PROPERTY_62", "PROPERTY_64", "PROPERTY_66", "PROPERTY_68", "PROPERTY_70", "PROPERTY_72", "PROPERTY_74", "PROPERTY_76", "PROPERTY_78", "PROPERTY_80", "PROPERTY_82", "PROPERTY_84", "PROPERTY_86", "PROPERTY_88", "SECTION_ID", "SORT", "TIMESTAMP_X", "VAT_ID", "VAT_INCLUDED", "XML_ID"];
     const allProducts = [];
@@ -20,45 +90,75 @@ async function fetchProducts() {
     let total = 0;
   
     try {
+      // 1. Получаем все товары
       do {
-        const response = await axios.get(`https://b24-8cgsys.bitrix24.kz/rest${process.env.BITRIX_API_KEY}crm.product.list`, {
-          params: {
-            filter: { iblockId: 16 },
-            select: productSelects,
-            start: start,
-          },
-        });
+        const productResponse = await axios.get(
+          `https://b24-8cgsys.bitrix24.kz/rest${process.env.BITRIX_API_KEY}crm.product.list`, 
+          {
+            params: {
+              filter: { iblockId: 16 },
+              select: productSelects,
+              start: start,
+            },
+          }
+        );
   
-        total = response.data.total;
-        start += 50;
+        const products = productResponse.data.result || [];
+        if (products.length === 0) break;
   
-        console.log('Ответ от Bitrix24:', response.data);
-  
-        if (!response.data.result || response.data.result.length === 0) {
-          console.warn('Bitrix24 вернул пустой список товаров!');
-          break;
-        }
-  
-        allProducts.push(...response.data.result);
-  
-        if (response.data.total < 50) {
-          break;
-        }
+        allProducts.push(...products);
+        start += products.length;
+        total = productResponse.data.total;
       } while (start < total);
+  
+      // 2. Получаем все остатки
+      const stockItems = [];
+      let startStock = 0;
+      let totalStock = 0;
       
-      console.log(allProducts.length);
-
-      fs.writeFileSync(FILE_PATH, '', 'utf-8');
-
-      // Записываем товары в файл
-      fs.writeFileSync(FILE_PATH, JSON.stringify(allProducts, null, 2), 'utf-8');
-      console.log(`✅ Товары успешно записаны в ${FILE_PATH}`);
-      return allProducts;
+      do {
+        const storeResponse = await axios.get(
+          `https://b24-8cgsys.bitrix24.kz/rest${process.env.BITRIX_API_KEY}catalog.storeproduct.list`,
+          {
+            params: {
+              select: ['productId', 'amount'],
+              start: startStock,
+            }
+          }
+        );
+  
+        const stores = storeResponse.data.result.storeProducts || [];
+        stockItems.push(...stores);
+        startStock += stores.length;
+        totalStock = storeResponse.data.total;
+      } while (startStock < totalStock);
+  
+      // 3. Создаем карту остатков
+      const stockMap = stockItems.reduce((acc, item) => {
+        const productId = item.productId;
+        const amount = item.amount !== null ? item.amount : 0;
+        acc[productId] = (acc[productId] || 0) + amount;
+        return acc;
+      }, {});
+  
+      // 4. Обогащаем товары
+      const enrichedProducts = allProducts.map(product => ({
+        ...product,
+        STOCK_AMOUNT: stockMap[product.ID] || 0
+      }));
+  
+      // 5. Сохраняем и возвращаем
+      fs.writeFileSync(FILE_PATH, JSON.stringify(enrichedProducts, null, 2));
+      return enrichedProducts;
+  
     } catch (error) {
-      console.error('Ошибка при запросе к Bitrix24:', error);
+      console.error('Ошибка:', error.response?.data || error.message);
       return [];
     }
   }
+
+
+
 // '/qareket/api/update-products'
 // НОВЫЙ маршрут: обновить JSON-файл вручную
 app.post('/qareket/api/update-products', async (req, res) => {
